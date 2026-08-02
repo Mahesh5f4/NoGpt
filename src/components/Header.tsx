@@ -27,6 +27,7 @@ interface HeaderProps {
   sessions: ChatSession[];
   activeSessionId: string;
   onSelectSession: (id: string) => void;
+  userName?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -40,6 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   sessions,
   activeSessionId,
   onSelectSession,
+  userName,
 }) => {
   const [showAllChatsMenu, setShowAllChatsMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,14 +74,14 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             type="button"
             onClick={onToggleSidebar}
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+            className="lg:hidden p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
             title="Open conversation drawer"
           >
             <Menu className="w-5 h-5 text-slate-700" />
             <span className="hidden md:inline text-slate-600">History</span>
           </button>
 
-          <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+          <div className="h-5 w-px bg-slate-200 hidden sm:block lg:hidden" />
 
           {/* NoGPT Main Branding Header */}
           <div className="flex items-center gap-2 min-w-0">
@@ -96,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <p className="text-[10px] text-slate-500 font-medium truncate hidden sm:block">
-                Say "No" with confidence and respect
+                {userName ? `Hello, ${userName}` : 'Say "No" with confidence and respect'}
               </p>
             </div>
           </div>
@@ -143,124 +145,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </header>
 
-      {/* Navbar for Chat History */}
-      <nav className="px-3 sm:px-5 py-1.5 bg-slate-50/90 flex items-center gap-2 overflow-x-auto custom-scrollbar text-xs">
-        {/* All Chats Popover Trigger */}
-        <div className="relative shrink-0" ref={menuRef}>
-          <button
-            type="button"
-            onClick={() => setShowAllChatsMenu((prev) => !prev)}
-            className="flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-800 font-bold border border-slate-200 px-2.5 py-1 rounded-md transition-colors cursor-pointer shadow-2xs"
-            title="View All Chats"
-          >
-            <History className="w-3.5 h-3.5 text-blue-600" />
-            <span>All Chats ({sessions.length})</span>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
-          </button>
-
-          {/* All Chats Dropdown Menu */}
-          {showAllChatsMenu && (
-            <div className="absolute left-0 top-8 w-72 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 space-y-2 animate-fadeIn">
-              <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-                <span className="font-bold text-slate-800 text-xs flex items-center gap-1">
-                  <History className="w-3.5 h-3.5 text-blue-600" /> All Conversations
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowAllChatsMenu(false)}
-                  className="p-0.5 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Search in Dropdown */}
-              <div className="relative">
-                <Search className="w-3 h-3 text-slate-400 absolute left-2 top-2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter chats..."
-                  className="w-full text-xs pl-7 pr-2 py-1 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:bg-white focus:border-blue-500"
-                />
-              </div>
-
-              {/* Chat items list */}
-              <div className="max-h-60 overflow-y-auto space-y-1 custom-scrollbar">
-                {filteredSessions.length === 0 ? (
-                  <p className="text-[11px] text-slate-400 p-2 text-center">No chats found.</p>
-                ) : (
-                  filteredSessions.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => {
-                        onSelectSession(s.id);
-                        setShowAllChatsMenu(false);
-                      }}
-                      className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between gap-2 transition-colors cursor-pointer ${
-                        s.id === activeSessionId
-                          ? 'bg-blue-50 text-blue-900 font-semibold'
-                          : 'hover:bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <MessageSquare className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{s.title}</span>
-                      </div>
-                      {s.pinned && <Pin className="w-3 h-3 text-amber-500 fill-amber-500 shrink-0" />}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Horizontal navbar list of chats for quick switching */}
-        {sessions.length === 0 ? (
-          <span className="text-slate-400 italic text-[11px] shrink-0">
-            No saved conversations. Start typing below!
-          </span>
-        ) : (
-          <div className="flex items-center gap-1.5 min-w-0">
-            {/* Pinned sessions in navbar */}
-            {pinnedSessions.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => onSelectSession(s.id)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 shrink-0 max-w-[150px] sm:max-w-[200px] truncate transition-colors cursor-pointer border ${
-                  s.id === activeSessionId
-                    ? 'bg-blue-600 text-white border-blue-600 font-semibold shadow-2xs'
-                    : 'bg-amber-50/80 text-amber-900 border-amber-200 hover:bg-amber-100'
-                }`}
-              >
-                <Pin className={`w-3 h-3 shrink-0 ${s.id === activeSessionId ? 'text-white' : 'text-amber-600 fill-amber-500'}`} />
-                <span className="truncate">{s.title}</span>
-              </button>
-            ))}
-
-            {/* Recent sessions in navbar */}
-            {recentSessions.slice(0, 8).map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => onSelectSession(s.id)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 shrink-0 max-w-[150px] sm:max-w-[200px] truncate transition-colors cursor-pointer border ${
-                  s.id === activeSessionId
-                    ? 'bg-blue-600 text-white border-blue-600 font-semibold shadow-2xs'
-                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                <MessageSquare className={`w-3 h-3 shrink-0 ${s.id === activeSessionId ? 'text-white' : 'text-slate-400'}`} />
-                <span className="truncate">{s.title}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </nav>
     </div>
   );
 };

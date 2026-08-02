@@ -5,12 +5,14 @@ import { ChatMessageBubble } from './components/ChatMessageBubble';
 import { ChatComposer } from './components/ChatComposer';
 import { SettingsModal } from './components/SettingsModal';
 import { LanguageOnboardingModal } from './components/LanguageOnboardingModal';
+import { NameOnboardingModal } from './components/NameOnboardingModal';
 import { streamNoGptResponse } from './lib/gemini';
 import { ChatMessage, ChatSession, ToneOption } from './types';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const STORAGE_KEY_SESSIONS = 'nogpt_sessions_v3';
 const STORAGE_KEY_LANG = 'nogpt_language_v3';
+const STORAGE_KEY_NAME = 'nogpt_username_v3';
 
 export default function App() {
   const [sessions, setSessions] = useState<ChatSession[]>(() => {
@@ -29,6 +31,14 @@ export default function App() {
 
   const [showLanguageOnboarding, setShowLanguageOnboarding] = useState<boolean>(() => {
     return !localStorage.getItem(STORAGE_KEY_LANG);
+  });
+
+  const [userName, setUserName] = useState<string>(() => {
+    return localStorage.getItem(STORAGE_KEY_NAME) || '';
+  });
+
+  const [showNameOnboarding, setShowNameOnboarding] = useState<boolean>(() => {
+    return !localStorage.getItem(STORAGE_KEY_NAME);
   });
 
   const [activeSessionId, setActiveSessionId] = useState<string>('');
@@ -56,6 +66,12 @@ export default function App() {
       localStorage.setItem(STORAGE_KEY_LANG, selectedLanguage);
     }
   }, [selectedLanguage]);
+
+  useEffect(() => {
+    if (userName) {
+      localStorage.setItem(STORAGE_KEY_NAME, userName);
+    }
+  }, [userName]);
 
   // Keyboard shortcut Cmd/Ctrl+N for New Chat
   useEffect(() => {
@@ -331,7 +347,16 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans antialiased">
+    <div className="flex h-[100dvh] bg-slate-50 text-slate-900 overflow-hidden font-sans antialiased">
+      {/* Name Onboarding Modal */}
+      <NameOnboardingModal
+        isOpen={showNameOnboarding && !showLanguageOnboarding}
+        onSubmitName={(name) => {
+          setUserName(name);
+          setShowNameOnboarding(false);
+        }}
+      />
+
       {/* Language Onboarding Modal */}
       <LanguageOnboardingModal
         isOpen={showLanguageOnboarding}
@@ -381,6 +406,7 @@ export default function App() {
           sessions={sessions}
           activeSessionId={activeSessionId}
           onSelectSession={setActiveSessionId}
+          userName={userName}
         />
 
         {/* Scrollable Conversation History View */}

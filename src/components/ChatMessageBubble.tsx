@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Info,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { ChatMessage, ToneOption } from '../types';
 import { DAILY_COMMUNICATION_TIPS } from '../constants/prompt';
 
@@ -58,16 +59,29 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
 
   const handleTextToSpeech = () => {
     if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
       if (speaking) {
-        window.speechSynthesis.cancel();
         setSpeaking(false);
         return;
       }
+      
       const utterance = new SpeechSynthesisUtterance(message.content.replace(/[#*`_]/g, ''));
+      
+      // Select an English voice if available, which helps stabilize Chrome/Safari TTS
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find(v => v.lang.startsWith('en'));
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
+
       utterance.onend = () => setSpeaking(false);
       utterance.onerror = () => setSpeaking(false);
       setSpeaking(true);
-      window.speechSynthesis.speak(utterance);
+      
+      // Slight delay prevents the browser from dropping the play request
+      setTimeout(() => {
+        window.speechSynthesis.speak(utterance);
+      }, 50);
     }
   };
 
@@ -77,16 +91,26 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
 
   if (isUser) {
     return (
-      <div className="flex justify-end my-3 animate-fadeIn">
+      <motion.div
+        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="flex justify-end my-3"
+      >
         <div className="max-w-[85%] sm:max-w-[70%] bg-blue-600 text-white rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-medium shadow-xs">
           <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="flex gap-3 my-4 animate-fadeIn">
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+      className="flex gap-3 my-4"
+    >
       {/* Assistant Avatar Icon */}
       <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 font-bold text-xs shadow-xs mt-1">
         <MessageSquareOff className="w-4 h-4" />
@@ -193,6 +217,6 @@ export const ChatMessageBubble: React.FC<ChatMessageBubbleProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
