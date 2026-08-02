@@ -1,0 +1,6 @@
+{
+  "name": "NoGPT",
+  "description": "An AI conversation coach that helps people confidently and respectfully say 'no' in difficult real-life situations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
